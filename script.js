@@ -482,6 +482,8 @@ const runSimulation = alistOfMatches => {
     displaySummary(tabelaProbs);
     
     
+
+    
 };
 
 
