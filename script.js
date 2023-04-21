@@ -343,79 +343,81 @@ function displaySummary(summary){
                 </tr>`;
     });
     table += "</table>";
-    table += `<select id="item-select" multiple></select><button id="plot-button">Gerar gráfico</button>
-
-	          <canvas id="histogram-chart"></canvas>`;
+    //table += ``;
     document.getElementById("divSummary").innerHTML = table;
+    displayGraphs(summary);
     showPanel("divSummary");
-
-    // Get a reference to the select element and the button element
-    var itemSelect = document.getElementById("item-select");
-    var plotButton = document.getElementById("plot-button");
-
-    // Populate the select element with the names of the items in the array
-    for (var i = 0; i < summary.length; i++) {
-        var option = document.createElement("option");
-        option.text = summary[i].nome;
-        itemSelect.add(option);
-    }
-
-    // Add an event listener to the button element
-    plotButton.addEventListener("click", function() {
-        // Find the selected items in the array
-        var selectedItems = [];
-        var selectedOptions = Array.from(itemSelect.selectedOptions);
-        for (var i = 0; i < selectedOptions.length; i++) {
-            var selectedItem = summary.find(function(item) {
-                return item.nome === selectedOptions[i].value;
-            });
-            if (selectedItem) {
-                selectedItems.push(selectedItem);
-            }
-        }
-
-        var colorPalette = [    "#a6cee3",    "#1f78b4",    "#b2df8a",    "#33a02c",    "#fb9a99",    "#e31a1c",    "#fdbf6f",    "#ff7f00",    "#cab2d6",    "#6a3d9a",    "#ffff99",    "#b15928",    "#8dd3c7",    "#ffffb3",    "#bebada",    "#fb8072",    "#80b1d3",    "#fdb462",    "#fccde5",    "#d9d9d9"];
-        // Update the chart data object
-        var chartData = {
-            labels: selectedItems[0].histograma.map(function(_, index) {
-                return index + 1;
-            }),
-            datasets: selectedItems.map(function(item, index) {
-                return {
-                    label: item.nome,
-                    backgroundColor: colorPalette[index % colorPalette.length],
-                    borderColor: colorPalette[index % colorPalette.length],
-                    borderWidth: 1,
-                    data: item.histograma.map(a => 100.0*a/N_SIMS)
-                };
-            })
-        };
-
-        // Update the chart options object
-        var chartOptions = {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            }
-        };
-
-        // Destroy any existing chart objects
-        if (chart !== undefined) {
-            chart.destroy();
-        }
-
-        // Create the chart object
-        var histogramCanvas = document.getElementById("histogram-chart");
-        chart = new Chart(histogramCanvas, {
-            type: 'bar',
-            data: chartData,
-            options: chartOptions
-        });
-    });
 }
+
+function displayGraphs(summary){
+  // Get a reference to the select element and the button element
+  var itemSelect = document.getElementById("item-select");
+  var plotButton = document.getElementById("plot-button");
+
+  // Populate the select element with the names of the items in the array
+  for (var i = 0; i < summary.length; i++) {
+      var option = document.createElement("option");
+      option.text = summary[i].nome;
+      itemSelect.add(option);
+  }
+
+  // Add an event listener to the button element
+  plotButton.addEventListener("click", function() {
+      // Find the selected items in the array
+      var selectedItems = [];
+      var selectedOptions = Array.from(itemSelect.selectedOptions);
+      for (var i = 0; i < selectedOptions.length; i++) {
+          var selectedItem = summary.find(function(item) {
+              return item.nome === selectedOptions[i].value;
+          });
+          if (selectedItem) {
+              selectedItems.push(selectedItem);
+          }
+      }
+
+      var colorPalette = [    "#a6cee3",    "#1f78b4",    "#b2df8a",    "#33a02c",    "#fb9a99",    "#e31a1c",    "#fdbf6f",    "#ff7f00",    "#cab2d6",    "#6a3d9a",    "#ffff99",    "#b15928",    "#8dd3c7",    "#ffffb3",    "#bebada",    "#fb8072",    "#80b1d3",    "#fdb462",    "#fccde5",    "#d9d9d9"];
+      // Update the chart data object
+      var chartData = {
+          labels: selectedItems[0].histograma.map(function(_, index) {
+              return index + 1;
+          }),
+          datasets: selectedItems.map(function(item, index) {
+              return {
+                  label: item.nome,
+                  backgroundColor: colorPalette[index % colorPalette.length],
+                  borderColor: colorPalette[index % colorPalette.length],
+                  borderWidth: 1,
+                  data: item.histograma.map(a => 100.0*a/N_SIMS)
+              };
+          })
+      };
+
+      // Update the chart options object
+      var chartOptions = {
+          scales: {
+              yAxes: [{
+                  ticks: {
+                      beginAtZero: true
+                  }
+              }]
+          }
+      };
+
+      // Destroy any existing chart objects
+      if (chart !== undefined) {
+          chart.destroy();
+      }
+
+      // Create the chart object
+      var histogramCanvas = document.getElementById("histogram-chart");
+      chart = new Chart(histogramCanvas, {
+          type: 'bar',
+          data: chartData,
+          options: chartOptions
+      });
+  });
+}
+
  
 //Main Function of simulation
 const runSimulation = alistOfMatches => {
@@ -492,6 +494,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById("btRatings").addEventListener('click', () => {showPanel('divRatings');});
     document.getElementById("btNextMatches").addEventListener('click', () => {showPanel('divNextMatches');});
     document.getElementById("btSummary").addEventListener('click', () => {showPanel('divSummary');});
+    document.getElementById("btGraphs").addEventListener('click', () => {showPanel('divGraphs');});
 
 });
 

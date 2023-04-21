@@ -147,17 +147,23 @@ $jsonMatchList = $miner->getGameList();
     <h1>Simulador SAS - Brasileirão 2023 - Série A</h1>
     <div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
 </div>
-    <span class="navbar">
-      
+    <span class="navbar">      
       <button id="btMatches">Lista de Jogos</button>
       <button id="btRatings">Ratings e Campanha</button>
       <button id="btNextMatches">Próximos jogos</button>
       <button id="btSummary">Resultado Simulação</button>
+      <button id="btGraphs">Gráficos</button>
     </span>
-      <div class="panel" id="divMatches" ></div>
-      <div class="panel" id="divRatings" ></div>
-      <div class="panel" id="divNextMatches" ></div>
-      <div class="panel" id="divSummary"></div>
+    <div class="panel" id="divMatches" ></div>
+    <div class="panel" id="divRatings" ></div>
+    <div class="panel" id="divNextMatches" ></div>
+    <div class="panel" id="divSummary"></div>
+    <div class="panel" id="divGraphs">
+      <h3>Selecione 1 ou mais times e clique em "Gerar gráfico":</h3>
+        <select id="item-select" multiple></select><button id="plot-button">Gerar gráfico</button>
+        <h2>Probabilidade por colocação final:</h2>
+        <canvas id="histogram-chart"></canvas>
+    </div>
   </body>
 </html>
 
