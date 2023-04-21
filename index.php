@@ -3,9 +3,7 @@
 
 class Game {
     public $homeTeam;
-    public $homeBadge;
     public $awayTeam;
-    public $awayBadge;
     public $homeScore;
     public $awayScore;
     public $done;
@@ -18,11 +16,9 @@ class Game {
         $this->done = false;
     } */
 
-    public function __construct($timeCasa, $homeBadge, $timeFora, $awayBadge, $golsCasa = "", $golsFora = "") {
+    public function __construct($timeCasa, $timeFora, $golsCasa = "", $golsFora = "") {
         $this->homeTeam = $timeCasa;
-        $this->homeBadge = $homeBadge;
         $this->awayTeam = $timeFora;
-        $this->awayBadge = $awayBadge;
         $this->homeScore = $golsCasa;
         $this->awayScore = $golsFora;
         if ($golsCasa == "" || $golsFora == "") {
@@ -99,6 +95,7 @@ class SiteCBFMiner {
       return json_encode($this->gameList);      
     }
 }
+
 
 
 $miner = new SiteCBFMiner( "https://www.cbf.com.br/futebol-brasileiro/competicoes/campeonato-brasileiro-serie-a/2023");
