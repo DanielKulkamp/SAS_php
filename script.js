@@ -569,7 +569,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById("btNextMatches").addEventListener('click', () => {showPanel('divNextMatches');});
     document.getElementById("btSummary").addEventListener('click', () => {showPanel('divSummary');});
     document.getElementById("btGraphs").addEventListener('click', () => {showPanel('divGraphs');});
+    document.getElementById("btFAQ").addEventListener('click', () => {showPanel('divFAQ');});
     document.getElementById("btNewSim").addEventListener('click', () => runSimulation(listOfMatches));
+        
 
 });
 
