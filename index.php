@@ -3,26 +3,14 @@
 
 class Game {
     public $homeTeam;
-    public $homeBadge;
     public $awayTeam;
-    public $awayBadge;
     public $homeScore;
     public $awayScore;
     public $done;
 
-/*     public function __construct($timeCasa, $timeFora) {
+    public function __construct($timeCasa, $timeFora, $golsCasa = "", $golsFora = "") {
         $this->homeTeam = $timeCasa;
         $this->awayTeam = $timeFora;
-        $this->homeScore = -1;
-        $this->awayScore = -1;
-        $this->done = false;
-    } */
-
-    public function __construct($timeCasa, $homeBadge, $timeFora, $awayBadge, $golsCasa = "", $golsFora = "") {
-        $this->homeTeam = $timeCasa;
-        $this->homeBadge = $homeBadge;
-        $this->awayTeam = $timeFora;
-        $this->awayBadge = $awayBadge;
         $this->homeScore = $golsCasa;
         $this->awayScore = $golsFora;
         if ($golsCasa == "" || $golsFora == "") {
@@ -46,9 +34,7 @@ class SiteCBFMiner {
 
       try {
         ini_set('memory_limit', '256M');
-
-        $doc = file_get_contents($this->url);
-        
+      
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -80,9 +66,9 @@ class SiteCBFMiner {
             $awayScore = $matches[0][2];
             $this->badges[$badgesAndNamesHome[$i][2]] = $badgesAndNamesHome[$i][1];
             $this->badges[$badgesAndNamesAway[$i][2]] = $badgesAndNamesAway[$i][1];
-            array_push($this->gameList, new Game($badgesAndNamesHome[$i][2], $badgesAndNamesHome[$i][1], $badgesAndNamesAway[$i][2], $badgesAndNamesAway[$i][1], $homeScore, $awayScore));
+            array_push($this->gameList, new Game($badgesAndNamesHome[$i][2], $badgesAndNamesAway[$i][2], $homeScore, $awayScore));
           } else {
-            array_push($this->gameList, new Game($badgesAndNamesHome[$i][2], $badgesAndNamesHome[$i][1], $badgesAndNamesAway[$i][2], $badgesAndNamesAway[$i][1]));
+            array_push($this->gameList, new Game($badgesAndNamesHome[$i][2], $badgesAndNamesAway[$i][2]));
           }
         }
         
@@ -153,6 +139,7 @@ $jsonMatchList = $miner->getGameList();
       <button id="btNextMatches">Próximos jogos</button>
       <button id="btSummary">Resultado Simulação</button>
       <button id="btGraphs">Gráficos</button>
+      <button id="btNewSim">Nova Simulação</button>
     </span>
     <div class="panel" id="divMatches" ></div>
     <div class="panel" id="divRatings" ></div>
