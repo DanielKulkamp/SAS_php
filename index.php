@@ -154,6 +154,9 @@ if (isset($_GET['camp'])) {
         $titulo = "Brasileirão Série A";
     }
 
+} else{
+  $miner = new SiteCBFMiner( "https://www.cbf.com.br/futebol-brasileiro/competicoes/campeonato-brasileiro-serie-a/2023");        
+  $titulo = "Brasileirão Série A";
 }
 
 $jsonMatchList = $miner->getGameList();
