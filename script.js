@@ -43,6 +43,19 @@ class Expectancy {
   }
 }
 
+function compareTeams(one, other){
+  if (one.points > other.points) return -1;
+  if (one.points < other.points) return 1;
+  if (one.wins > other.wins) return -1;
+  if (one.wins < other.wins) return 1;
+  if (one.goalDiff > other.goalDiff) return -1;
+  if (one.goalDiff < other.goalDiff) return 1;
+  if (one.goalsFor > other.goalsFor) return -1;
+  if (one.goalsFor < other.goalsFor) return 1;
+  return 0; 
+}
+
+
 class Team {
   static INITIAL_RATING = 1000.0;
   points = 0;
@@ -52,11 +65,9 @@ class Team {
   goalsAgainst = 0;
   goalDiff = 0;
   name = "";
-  badge = "";
-  
-  constructor(name, badge) {
+    
+  constructor(name) {
     this.name = name;
-    this.badge = badge;
     this.wins = 0;
     this.points = 0;
     this.rating = Team.INITIAL_RATING;
@@ -65,16 +76,8 @@ class Team {
     this.goalDiff = 0;
   } 
   
-  compareTo(b) {
-    if (this.points > b.points) return -1;
-    if (this.points < b.points) return 1;
-    if (this.wins > b.wins) return -1;
-    if (this.wins < b.wins) return 1;
-    if (this.goalDiff > b.goalDiff) return -1;
-    if (this.goalDiff < b.goalDiff) return 1;
-    if (this.goalsFor > b.goalsFor) return -1;
-    if (this.goalsFor < b.goalsFor) return 1;
-    return 0; 
+  compareTo(other) {
+    return compareTeams(this, other);
   }
 }
 
@@ -122,6 +125,7 @@ function computeMatch(homeTeam, awayTeam, homeScore, awayScore) {
   homeTeam.rating += adjust;
   awayTeam.rating -= adjust;
 
+
 }
 
 function simulateMatchELOHFA(casa, fora) {
@@ -130,72 +134,96 @@ function simulateMatchELOHFA(casa, fora) {
   const drawExpectancy = exp.draw;
   const alea = Math.random();
   const alea2 = Math.random();
-  let saldo = 0;
-  let minGols = 0;
+  let homeScore = 0;
+  let awayScore = 0;
   
   if (alea < winExpectancy * PCT_VITORIA_SALDO_5) {
-    saldo = 5;
-    minGols = 0;
+    homeScore = 5;
+    awayScore = 0;
   } else if (alea < winExpectancy * PCT_VITORIA_SALDO_4) {
-    saldo = 4;
-    if (alea2 < 0.9) 
-      minGols = 1;
+    if (alea2 < 0.9) {
+      homeScore = 4;
+      awayScore = 0;    
+    } else{
+      homeScore = 5;
+      awayScore = 1;
+    }
   } else if (alea < winExpectancy * PCT_VITORIA_SALDO_3) {
-    saldo = 3;
-    
+    homeScore = 3;
+    awayScore = 1;
     if ((alea2 > 0.7) && (alea2 < 0.95)) {
-      minGols = 1;
+      homeScore = 4;
+      awayScore = 1;
     }
     if (alea2 > 0.95) {
-      minGols = 2;
+      homeScore = 5
+      awayScore = 2
     }
   } else if (alea < winExpectancy * PCT_VITORIA_SALDO_2) {
-    saldo = 2;
+    homeScore = 2;
+    awayScore = 0;
     if ((alea2 > 0.70) && (alea2 < 0.95)) {
-      minGols = 1;
+      homeScore = 3;
+      awayScore = 1;
     }
     if (alea2 > 0.95) {
-      minGols = 2;
+      homeScore = 4;
+      awayScore = 2;
     }
 
   } else if (alea < winExpectancy) {
-    saldo = 1;
+    homeScore = 1;
+    awayScore = 0;
     if ((alea2 > 0.60) && (alea2 < 0.95)) {
-      minGols = 1;
+      homeScore = 2;
+      awayScore = 1;
     }
     if (alea2 > 0.95) {
-      minGols = 2;
+      homeScore = 3;
+      awayScore = 2;
+    }
+    if (alea2 > 0.99) {
+      homeScore = 4;
+      awayScore = 3;
     }
     
   } else if (alea - winExpectancy < drawExpectancy) {
-      saldo = 0;
+      homeScore = 0;
+      awayScore = 0;
       if ((alea2 > 0.60) && (alea2 < 0.95)) {
-        minGols = 1;
+        homeScore = 1;
+        awayScore = 1;
       }
       if (alea2 > 0.95) {
-        minGols = 2;
+        homeScore = 2;
+        awayScore = 2;
       }
-
   } else {
     if (Math.random() < PCT_DERROTA_1) {
-      saldo = -1;
+      homeScore = 0;
+      awayScore = 1;
       if ((alea2 > 0.60) && (alea2 < 0.95)) {
-        minGols = 1;
+        homeScore = 1;
+        awayScore = 2;
       }
       if (alea2 > 0.95) {
-        minGols = 2;
+        homeScore = 2;
+        awayScore = 3;
       }            
     } else {
-          saldo = -2;
+          homeScore = 0;
+          awayScore = 2;
           if ((alea2 > 0.60) && (alea2 < 0.95)) {
-            minGols = 2;
+            homeScore = 1;
+            awayScore = 3;
           }
           if (alea2 > 0.95) {
-            minGols =3 ;
+            homeScore = 2;
+            awayScore = 4;
           }
     }
   }
-  computeMatch(casa, fora, minGols + saldo, minGols);
+  return [ homeScore, awayScore];  
 }
 
 function showPanel(id){
@@ -217,11 +245,46 @@ function displayRatings(ratings){
     let badge = badgesDictionary[t.name];
     rows.push(`<tr><td>${i+1}</td><td><img height='40' width='40' src='${badge}' alt='${t.name}'></img</td><td>${t.rating.toFixed(2)}</td><td>${t.points}</td><td>${t.wins}</td><td>${t.goalDiff}</td><td>${t.goalsFor}</td></tr>`);
   }
-  let table = "<h2>Ratings e Campanha</h2><table border='1'><tr><th>#</th><th>Time</th><th>Rating</th><th>PG</th><th>Vitórias</th><th>Saldo</th><th>Gols pró</th></tr>" + rows.join("") + "</table>";
+  let table = "<h2>Ratings e Campanha</h2><table border='1'><tr><th>#</th><th>Time</th><th>Rating</th><th>PG</th><th>VitÃ³rias</th><th>Saldo</th><th>Gols prÃ³</th></tr>" + rows.join("") + "</table>";
   document.getElementById("divRatings").innerHTML = table;
   showPanel("divRatings");
 }
 
+function enableEditGame(event){
+  let button = event.srcElement;
+  let index = button.id.substring(11);
+  let td_home = document.getElementById(`homeScore_${index}`);
+  let td_away = document.getElementById(`awayScore_${index}`);
+  let homeScore = td_home.innerHTML;
+  let awayScore = td_away.innerHTML;
+  td_home.innerHTML = `<input type='number' min='0' id='inputHome_${index}' value='${homeScore}'>`
+  td_away.innerHTML = `<input type='number' min='0' id='inputAway_${index}' value='${awayScore}'>`
+  button.removeEventListener('click', enableEditGame);
+  button.addEventListener('click', saveEditedGame);
+  button.innerHTML = "Salvar";
+}
+
+function saveEditedGame(event){
+  let button = event.srcElement;
+  let index = button.id.substring(11);
+  let homeInput = document.getElementById(`inputHome_${index}`);
+  let awayInput = document.getElementById(`inputAway_${index}`);
+  let g = listOfMatches[parseInt(index)];
+  if (homeInput.value === "" || awayInput.value === ""){
+    g.done = false;
+  } else {
+    g.done = true;
+  }
+  g.homeScore = homeInput.value;
+  g.awayScore = awayInput.value;
+  document.getElementById(`homeScore_${index}`).innerHTML = ""+ g.homeScore;
+  document.getElementById(`awayScore_${index}`).innerHTML = ""+ g.awayScore;
+
+  button.removeEventListener('click', saveEditedGame);
+  button.addEventListener('click', enableEditGame)
+  button.innerHTML = "Editar";
+
+}
 
 function displayListOfMatches(listOfMatches) {
   let table = "<h2>Lista completa de jogos</h2><table border='1'><tr><th>#</th><th>Mandante</th><th></th><th>x</th><th></th><th>Visitante</th></tr>";
@@ -233,13 +296,18 @@ function displayListOfMatches(listOfMatches) {
         <td><img height='40' width='40' src='${homeBadge}' title='${game.homeTeam}'</img></td>
         <td id="homeScore_${i}">${game.homeScore}</td>
         <td>X</td>
-        <td id="homeScore_${i}">${game.awayScore}</td>
+        <td id="awayScore_${i}">${game.awayScore}</td>
         <td><img height='40' width='40' src='${awayBadge}' title='${game.awayTeam}'</img>
-        <td><button id="editButton_${i}">Editar</button></td>
+        <td><button class="editMatchButton" id="editButton_${i}">Editar</button></td>
     </tr>`;
   });
   table += "</table>";
   document.getElementById("divMatches").innerHTML = table;
+  
+  for( button of  document.getElementsByClassName("editMatchButton") ) {
+    button.addEventListener('click', enableEditGame);
+
+  }
   showPanel("divMatches");
 }
 
@@ -256,13 +324,13 @@ function displayNextMatches(homeTeams, awayTeams, expectancies){
     </tr>
   `});
 
-  let table = `<h2>Probabilidades nos Próximos Jogos</h2><table border='1'>
+  let table = `<h2>Probabilidades nos PrÃ³ximos Jogos</h2><table border='1'>
   <tr>
       <th>Mandante</th>
       <th>Rating</th>
-      <th>Vitória Mandante</th>
+      <th>VitÃ³ria Mandante</th>
       <th>Empate</th>
-      <th>Vitória visitante</th>
+      <th>VitÃ³ria visitante</th>
       <th>Rating</th>
       <th>Visitante</th>
   </tr>${rows.join("")}</table>`;
@@ -279,14 +347,14 @@ function computePastMatches(alistOfMatches) {
     let realCampaign = new Map();
     for (let aMatch of pastMatches) {
         if (!realCampaign.has(aMatch.homeTeam)) {
-        realCampaign.set(aMatch.homeTeam, new Team(aMatch.homeTeam, aMatch.homeBadge));
+          realCampaign.set(aMatch.homeTeam, new Team(aMatch.homeTeam));
         }
         if (!realCampaign.has(aMatch.awayTeam)) {
-        realCampaign.set(aMatch.awayTeam, new Team(aMatch.awayTeam, aMatch.awayBadge));
+          realCampaign.set(aMatch.awayTeam, new Team(aMatch.awayTeam));
         }
         let tCasa = realCampaign.get(aMatch.homeTeam);
         let tFora = realCampaign.get(aMatch.awayTeam);
-        computeMatch(tCasa, tFora, aMatch.homeScore, aMatch.awayScore);
+        computeMatch(tCasa, tFora, parseInt(aMatch.homeScore), parseInt(aMatch.awayScore));
     }
 
     const ranking = [];
@@ -320,10 +388,10 @@ function calculateNextExpectancies(upcomingMatches, realCampaign){
 }
 
 function displaySummary(summary){
-    let table = `<h2>Resumo da Simulação</h2>
+    let table = `<h2>Resumo da SimulaÃ§Ã£o</h2>
                     <table border='1'>
                     <tr><th>#</th><th>Time</th>
-                    <th>Título</th>
+                    <th>TÃ­tulo</th>
                     <th>G4</th>
                     <th>G6</th>
                     <th>G7-12</th>
@@ -355,6 +423,7 @@ function displayGraphs(summary){
   var plotButton = document.getElementById("plot-button");
 
   // Populate the select element with the names of the items in the array
+  itemSelect.innerHTML = "";
   for (var i = 0; i < summary.length; i++) {
       var option = document.createElement("option");
       option.text = summary[i].nome;
@@ -430,15 +499,19 @@ const runSimulation = alistOfMatches => {
 
     let stats = new Map();
     for (let t of Object.values(realCampaign)) {
-    stats.set(t.name, new Summary(t.name));
+      stats.set(t.name, new Summary(t.name));
     }
+    
     for (let i = 0; i < N_SIMS; i++) {
         document.getElementsByClassName("progress-bar")[0].style.width = 100*i/N_SIMS + "%";
         let dicTimes = new Map();
-        for (let t of Object.values(realCampaign)) {
-            dicTimes.set(t.name, new Team(t));
-            classif.concat(dicTimes.set(t.name));
-        }
+        realCampaign.forEach((team, name) => {
+          dicTimes.set(name, {...team}); 
+        });
+
+        
+
+
 
         for (let j of upcomingMatches) {
             if (!dicTimes.has(j.homeTeam)) {
@@ -453,16 +526,18 @@ const runSimulation = alistOfMatches => {
             if (!stats.has(j.awayTeam)) {
                 stats.set(j.awayTeam, new Summary(j.awayTeam));
             }
-            simulateMatchELOHFA(dicTimes.get(j.homeTeam), dicTimes.get(j.awayTeam));
+            let [homeScore, awayScore] = simulateMatchELOHFA(dicTimes.get(j.homeTeam), dicTimes.get(j.awayTeam));
+            computeMatch(dicTimes.get(j.homeTeam),dicTimes.get(j.awayTeam), homeScore, awayScore);
 
         }
 
         let classif = [];
-        for (let t of dicTimes.values()) {
-            classif.push(t);
-        }
+        dicTimes.forEach((team, name) => {
+          let teamInDic = {...team};
+          classif.push(teamInDic)
+        });
+        classif.sort((a, b) => compareTeams(a, b));
         
-        classif.sort((a, b) => a.compareTo(b));
         
         for (let pos = 0; pos < classif.length; pos++) {
             stats.get(classif[pos].name).histograma[pos] = stats.get(classif[pos].name).histograma[pos]+1;
@@ -481,9 +556,6 @@ const runSimulation = alistOfMatches => {
     tabelaProbs.sort((a, b) => a.compareTo(b));
     displaySummary(tabelaProbs);
     
-    
-
-    
 };
 
 
@@ -497,6 +569,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById("btNextMatches").addEventListener('click', () => {showPanel('divNextMatches');});
     document.getElementById("btSummary").addEventListener('click', () => {showPanel('divSummary');});
     document.getElementById("btGraphs").addEventListener('click', () => {showPanel('divGraphs');});
+    document.getElementById("btNewSim").addEventListener('click', () => runSimulation(listOfMatches));
 
 });
-
