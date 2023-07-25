@@ -15,23 +15,32 @@ const PCT_DERROTA_2 = 0.99;
 var chart;
 
 class Summary {
-    constructor(nome) {
-      this.nome = nome;
-      this.titulos = 0;
-      this.g4s = 0;
-      this.z4s = 0;
-      this.histograma = new Array(20).fill(0);
-    }
-    compareTo(other) {
-      if (this.titulos > other.titulos) return -1;
-      if (this.titulos < other.titulos) return 1;
-      if (this.g4s > other.g4s) return -1;
-      if (this.g4s < other.g4s) return 1;
-      if (this.z4s > other.z4s) return 1;
-      if (this.z4s < other.z4s) return -1;
-      return 0;
-    }
+  constructor(nome) {
+    this.nome = nome;
+    this.titulos = 0;
+    this.g4s = 0;
+    this.z4s = 0;
+    this.histograma = new Array(20).fill(0);
   }
+  compareTo(other) {
+    if (this.titulos > other.titulos) return -1;
+    if (this.titulos < other.titulos) return 1;
+    if (this.g4s > other.g4s) return -1;
+    if (this.g4s < other.g4s) return 1;
+    if (this.z4s > other.z4s) return 1;
+    if (this.z4s < other.z4s) return -1;
+    return 0;
+  }
+}
+
+function expectancy(casa, fora) {
+  const deltaRating = casa.rating + HFA - fora.rating;
+  const divisor = 1 + Math.pow(10, -deltaRating / DIVISOR_ELO) + Math.pow(10, deltaRating / DIVISOR_ELO);
+  let win = Math.pow(10, deltaRating / DIVISOR_ELO) / divisor;
+  let draw = 1 / divisor;
+  let loss = 1 - win - draw;
+  return [win, draw, loss]
+}
 
 class Expectancy {
   constructor(casa, fora) {
@@ -129,9 +138,10 @@ function computeMatch(homeTeam, awayTeam, homeScore, awayScore) {
 }
 
 function simulateMatchELOHFA(casa, fora) {
-  const exp = new Expectancy(casa, fora);
-  const winExpectancy = exp.win;
-  const drawExpectancy = exp.draw;
+  let [winExpectancy, drawExpectancy] = expectancy(casa, fora);
+  //const exp = new Expectancy(casa, fora);
+  //const winExpectancy = exp.win;
+  //const drawExpectancy = exp.draw;
   const alea = Math.random();
   const alea2 = Math.random();
   let homeScore = 0;
@@ -245,7 +255,7 @@ function displayRatings(ratings){
     let badge = badgesDictionary[t.name];
     rows.push(`<tr><td>${i+1}</td><td><img height='40' width='40' src='${badge}' alt='${t.name}'></img</td><td>${t.rating.toFixed(2)}</td><td>${t.points}</td><td>${t.wins}</td><td>${t.goalDiff}</td><td>${t.goalsFor}</td></tr>`);
   }
-  let table = "<h2>Ratings e Campanha</h2><table border='1'><tr><th>#</th><th>Time</th><th>Rating</th><th>PG</th><th>VitÃ³rias</th><th>Saldo</th><th>Gols prÃ³</th></tr>" + rows.join("") + "</table>";
+  let table = "<h2>Ratings e Campanha</h2><table border='1'><tr><th>#</th><th>Time</th><th>Rating</th><th>PG</th><th>Vitórias</th><th>Saldo</th><th>Gols pró</th></tr>" + rows.join("") + "</table>";
   document.getElementById("divRatings").innerHTML = table;
   showPanel("divRatings");
 }
@@ -316,21 +326,21 @@ function displayNextMatches(homeTeams, awayTeams, expectancies){
     <tr>
       <td><img height='40' width='40' src='${badgesDictionary[homeTeam.name]}' title='${homeTeam.name}'></img></td>
       <td>${homeTeam.rating.toFixed(2)}</td>
-      <td>${(100*expectancies[i].win).toFixed(2)}%</td>
-      <td>${(100*expectancies[i].draw).toFixed(2)}%</td>
-      <td>${(100*expectancies[i].loss).toFixed(2)}%</td>
+      <td>${(100*expectancies[i][0]).toFixed(2)}%</td>
+      <td>${(100*expectancies[i][1]).toFixed(2)}%</td>
+      <td>${(100*expectancies[i][2]).toFixed(2)}%</td>
       <td>${awayTeams[i].rating.toFixed(2)}</td>
       <td><img height='40' width='40' src='${badgesDictionary[awayTeams[i].name]}' title='${awayTeams[i].name}'></img></td>
     </tr>
   `});
 
-  let table = `<h2>Probabilidades nos PrÃ³ximos Jogos</h2><table border='1'>
+  let table = `<h2>Probabilidades nos Próximos Jogos</h2><table border='1'>
   <tr>
       <th>Mandante</th>
       <th>Rating</th>
-      <th>VitÃ³ria Mandante</th>
+      <th>Vitória mandante</th>
       <th>Empate</th>
-      <th>VitÃ³ria visitante</th>
+      <th>Vitória visitante</th>
       <th>Rating</th>
       <th>Visitante</th>
   </tr>${rows.join("")}</table>`;
@@ -379,7 +389,7 @@ function calculateNextExpectancies(upcomingMatches, realCampaign){
         if (fora === undefined) {
         fora = new Team(upcomingMatches[i].awayTeam);
         }
-        const exp = new Expectancy(casa, fora);
+        const exp = expectancy(casa, fora);
         mandantes.push(casa);
         visitantes.push(fora);
         expectancies.push(exp);
@@ -388,10 +398,10 @@ function calculateNextExpectancies(upcomingMatches, realCampaign){
 }
 
 function displaySummary(summary){
-    let table = `<h2>Resumo da SimulaÃ§Ã£o</h2>
+    let table = `<h2>Resumo da Simulação</h2>
                     <table border='1'>
                     <tr><th>#</th><th>Time</th>
-                    <th>TÃ­tulo</th>
+                    <th>Tí­tulo</th>
                     <th>G4</th>
                     <th>G6</th>
                     <th>G7-12</th>
